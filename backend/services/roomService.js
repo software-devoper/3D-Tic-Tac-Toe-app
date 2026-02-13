@@ -134,6 +134,25 @@ export async function resetParticipantsForNextRound(roomId) {
   if (error) throw error;
 }
 
+export async function setRoomPlaying(roomId) {
+  const { error } = await supabase
+    .from("rooms")
+    .update({ status: "playing" })
+    .eq("id", roomId);
+
+  if (error) throw error;
+}
+
+export async function demoteApprovedGuest(roomId, userId) {
+  const { error } = await supabase
+    .from("room_participants")
+    .update({ role: "spectator", is_approved_player: false, hand_raised: false })
+    .eq("room_id", roomId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
+}
+
 export async function createGame({ roomId }) {
   const { data, error } = await supabase
     .from("games")
