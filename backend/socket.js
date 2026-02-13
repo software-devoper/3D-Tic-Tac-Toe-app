@@ -11,7 +11,8 @@ import {
   getRoomById,
   getRoomParticipants,
   removeParticipant,
-  resetParticipantsForNextRound,
+  demoteApprovedGuest,
+  setRoomPlaying,
   setRoomWaiting,
   updateGame,
   updateRaiseHand
@@ -41,6 +42,10 @@ function serializeState(state) {
 
   const viewerCount = participants.length;
 
+  const winnerUserId =
+    state.winner === "X" ? state.players.X : state.winner === "O" ? state.players.O : null;
+  const winnerUsername = winnerUserId ? state.participants.get(winnerUserId)?.username || null : null;
+
   return {
     roomId: state.roomId,
     hostId: state.hostId,
@@ -49,6 +54,8 @@ function serializeState(state) {
     turn: state.turn,
     winner: state.winner,
     isDraw: state.isDraw,
+    winnerUserId,
+    winnerUsername,
     winLine: state.winLine,
     players: state.players,
     participants,
@@ -337,22 +344,70 @@ export function initializeSocket(httpServer, allowedOrigins) {
         state.winner = null;
         state.isDraw = false;
         state.winLine = null;
-        state.status = "waiting";
-        state.players.O = null;
 
-        for (const participant of state.participants.values()) {
-          if (participant.userId !== state.hostId) {
-            participant.role = "spectator";
-            participant.isApprovedPlayer = false;
-            participant.handRaised = false;
-          }
+        // If current approved partner still exists, restart immediately with same player.
+        const partnerId = state.players.O;
+        const partner = partnerId ? state.participants.get(partnerId) : null;
+
+        if (partner) {
+          state.status = "playing";
+          await setRoomPlaying(roomId);
+          await createGame({ roomId });
+        } else {
+          state.status = "waiting";
+          await setRoomWaiting(roomId);
         }
 
-        await setRoomWaiting(roomId);
-        await resetParticipantsForNextRound(roomId);
         emitRoomState(io, roomId);
       } catch (error) {
         socket.emit("error_event", { message: error.message || "Failed to restart round." });
+      }
+    });
+
+    socket.on("leave_partner", async ({ roomId }) => {
+      try {
+        const state = roomStates.get(roomId);
+        if (!state) return;
+
+        if (socket.data.userId !== state.hostId) {
+          socket.emit("error_event", { message: "Only host can leave the current partner." });
+          return;
+        }
+
+        const partnerId = state.players.O;
+        if (!partnerId) {
+          socket.emit("error_event", { message: "No active partner to leave." });
+          return;
+        }
+
+        const partner = state.participants.get(partnerId);
+        if (partner) {
+          partner.role = "spectator";
+          partner.isApprovedPlayer = false;
+          partner.handRaised = false;
+        }
+
+        state.players.O = null;
+        state.board = Array(9).fill(null);
+        state.turn = "X";
+        state.winner = null;
+        state.isDraw = false;
+        state.winLine = null;
+        state.status = "waiting";
+
+        await demoteApprovedGuest(roomId, partnerId);
+        await setRoomWaiting(roomId);
+        await updateGame({
+          roomId,
+          board: state.board,
+          turn: state.turn,
+          status: "finished",
+          winner: null
+        });
+
+        emitRoomState(io, roomId);
+      } catch (error) {
+        socket.emit("error_event", { message: error.message || "Failed to leave partner." });
       }
     });
 
