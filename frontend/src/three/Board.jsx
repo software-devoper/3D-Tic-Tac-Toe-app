@@ -18,17 +18,17 @@ function Piece({ symbol, position }) {
         <>
           <mesh rotation={[0, 0, Math.PI / 4]}>
             <boxGeometry args={[0.9, 0.2, 0.2]} />
-            <meshStandardMaterial color="#06b6d4" metalness={0.4} roughness={0.25} />
+            <meshStandardMaterial color="#22d3ee" metalness={0.35} roughness={0.2} emissive="#0e7490" emissiveIntensity={0.15} />
           </mesh>
           <mesh rotation={[0, 0, -Math.PI / 4]}>
             <boxGeometry args={[0.9, 0.2, 0.2]} />
-            <meshStandardMaterial color="#06b6d4" metalness={0.4} roughness={0.25} />
+            <meshStandardMaterial color="#22d3ee" metalness={0.35} roughness={0.2} emissive="#0e7490" emissiveIntensity={0.15} />
           </mesh>
         </>
       ) : (
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[0.45, 0.12, 16, 32]} />
-          <meshStandardMaterial color="#f97316" metalness={0.3} roughness={0.35} />
+          <meshStandardMaterial color="#fb923c" metalness={0.25} roughness={0.3} emissive="#9a3412" emissiveIntensity={0.18} />
         </mesh>
       )}
     </group>
@@ -45,15 +45,15 @@ function Cell({ index, position, value, onSelect, disabled, highlighted }) {
         onClick={() => !disabled && onSelect(index)}
       >
         <meshStandardMaterial
-          color={highlighted ? "#22d3ee" : "#1e293b"}
-          metalness={0.2}
-          roughness={0.55}
-          emissive={highlighted ? "#0e7490" : "#000000"}
-          emissiveIntensity={highlighted ? 0.6 : 0}
+          color={highlighted ? "#67e8f9" : "#cbd5e1"}
+          metalness={0.15}
+          roughness={0.45}
+          emissive={highlighted ? "#22d3ee" : "#64748b"}
+          emissiveIntensity={highlighted ? 0.45 : 0.08}
         />
       </RoundedBox>
       {value ? <Piece symbol={value} position={[0, 0.2, 0]} /> : null}
-      <Text position={[0, 0.12, 0]} fontSize={0.14} color="#64748b">
+      <Text position={[0, 0.12, 0]} fontSize={0.14} color="#334155">
         {index + 1}
       </Text>
     </group>
@@ -78,12 +78,13 @@ function BoardScene({ board, onSelect, disabled, winLine, idle }) {
 
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 6, 5]} intensity={1.6} />
-      <pointLight position={[-4, 4, -3]} intensity={0.8} color="#22d3ee" />
+      <ambientLight intensity={1.0} />
+      <directionalLight position={[3, 6, 5]} intensity={2.2} />
+      <pointLight position={[-4, 4, -3]} intensity={1.2} color="#67e8f9" />
+      <pointLight position={[4, 3, 3]} intensity={0.8} color="#ffffff" />
       <mesh position={[0, -0.22, 0]}>
         <cylinderGeometry args={[2.6, 2.8, 0.2, 48]} />
-        <meshStandardMaterial color="#0b1120" />
+        <meshStandardMaterial color="#93c5fd" metalness={0.1} roughness={0.55} />
       </mesh>
       {coords.map((pos, index) => (
         <Cell
