@@ -115,6 +115,25 @@ export async function finishRoom(roomId) {
   if (error) throw error;
 }
 
+export async function setRoomWaiting(roomId) {
+  const { error } = await supabase
+    .from("rooms")
+    .update({ status: "waiting" })
+    .eq("id", roomId);
+
+  if (error) throw error;
+}
+
+export async function resetParticipantsForNextRound(roomId) {
+  const { error } = await supabase
+    .from("room_participants")
+    .update({ role: "spectator", is_approved_player: false, hand_raised: false })
+    .eq("room_id", roomId)
+    .neq("role", "host");
+
+  if (error) throw error;
+}
+
 export async function createGame({ roomId }) {
   const { data, error } = await supabase
     .from("games")
