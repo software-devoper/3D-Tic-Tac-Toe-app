@@ -96,6 +96,11 @@ export default function MultiplayerRoomPage() {
     socketRef.current.emit("approve_player", { roomId, userId });
   }
 
+  function restartRound() {
+    if (!socketRef.current) return;
+    socketRef.current.emit("restart_game", { roomId });
+  }
+
   const inviteLink = `${window.location.origin}/room/${roomId}`;
 
   async function copyInviteLink() {
@@ -142,6 +147,14 @@ export default function MultiplayerRoomPage() {
                 {roomState.winner ? <span className="badge">Winner: {roomState.winner}</span> : null}
                 {roomState.isDraw ? <span className="badge">Draw</span> : null}
               </div>
+
+              {isHost && roomState.status === "finished" ? (
+                <div>
+                  <button className="btn-primary" onClick={restartRound}>
+                    Restart Round
+                  </button>
+                </div>
+              ) : null}
 
               <Board board={roomState.board} onSelect={emitMove} disabled={!canMove} winLine={roomState.winLine} />
 
