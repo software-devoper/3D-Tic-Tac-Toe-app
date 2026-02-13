@@ -52,7 +52,7 @@ export default function DashboardPage() {
           <span className="badge">Multiplayer + AI Ready</span>
           <h1 className="title">Play 3D Tic-Tac-Toe with realtime competition</h1>
           <p className="muted max-w-xl">
-            Challenge Gemini 2.5 Flash in single-player mode, or host a room with live spectators and invite-based
+            Challenge Computer in single-player mode, or host a room with live spectators and invite-based
             multiplayer.
           </p>
           <div className="flex gap-3 flex-wrap pt-1">
