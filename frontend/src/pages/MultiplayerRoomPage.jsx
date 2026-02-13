@@ -101,6 +101,11 @@ export default function MultiplayerRoomPage() {
     socketRef.current.emit("restart_game", { roomId });
   }
 
+  function leavePartner() {
+    if (!socketRef.current) return;
+    socketRef.current.emit("leave_partner", { roomId });
+  }
+
   const inviteLink = `${window.location.origin}/room/${roomId}`;
 
   async function copyInviteLink() {
@@ -144,16 +149,30 @@ export default function MultiplayerRoomPage() {
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="badge">Status: {roomState.status}</span>
                 <span className="badge">Turn: {roomState.turn}</span>
-                {roomState.winner ? <span className="badge">Winner: {roomState.winner}</span> : null}
+                {roomState.winnerUsername ? <span className="badge">Winner: {roomState.winnerUsername}</span> : null}
                 {roomState.isDraw ? <span className="badge">Draw</span> : null}
               </div>
 
-              {isHost && roomState.status === "finished" ? (
-                <div>
-                  <button className="btn-primary" onClick={restartRound}>
-                    Restart Round
-                  </button>
+              {isHost && (roomState.status === "finished" || roomState.players?.O) ? (
+                <div className="flex gap-2 flex-wrap">
+                  {roomState.status === "finished" ? (
+                    <button className="btn-primary" onClick={restartRound}>
+                      Restart Round
+                    </button>
+                  ) : null}
+                  {roomState.players?.O ? (
+                    <button className="btn-secondary" onClick={leavePartner}>
+                      Leave Partner
+                    </button>
+                  ) : null}
                 </div>
+              ) : null}
+
+              {roomState.status === "finished" && roomState.winnerUsername ? (
+                <p className="text-sm text-cyan-100">
+                  Match finished. Winner is {roomState.winnerUsername}
+                  {roomState.winnerUserId === roomState.hostId ? " (Host)" : ""}.
+                </p>
               ) : null}
 
               <Board board={roomState.board} onSelect={emitMove} disabled={!canMove} winLine={roomState.winLine} />
