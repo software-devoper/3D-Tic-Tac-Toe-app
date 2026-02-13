@@ -11,6 +11,8 @@ import {
   getRoomById,
   getRoomParticipants,
   removeParticipant,
+  resetParticipantsForNextRound,
+  setRoomWaiting,
   updateGame,
   updateRaiseHand
 } from "./services/roomService.js";
@@ -312,6 +314,45 @@ export function initializeSocket(httpServer, allowedOrigins) {
         emitRoomState(io, roomId);
       } catch (error) {
         socket.emit("error_event", { message: error.message || "Failed to make move." });
+      }
+    });
+
+    socket.on("restart_game", async ({ roomId }) => {
+      try {
+        const state = roomStates.get(roomId);
+        if (!state) return;
+
+        if (socket.data.userId !== state.hostId) {
+          socket.emit("error_event", { message: "Only host can restart the round." });
+          return;
+        }
+
+        if (state.status !== "finished") {
+          socket.emit("error_event", { message: "Round can be restarted only after game is finished." });
+          return;
+        }
+
+        state.board = Array(9).fill(null);
+        state.turn = "X";
+        state.winner = null;
+        state.isDraw = false;
+        state.winLine = null;
+        state.status = "waiting";
+        state.players.O = null;
+
+        for (const participant of state.participants.values()) {
+          if (participant.userId !== state.hostId) {
+            participant.role = "spectator";
+            participant.isApprovedPlayer = false;
+            participant.handRaised = false;
+          }
+        }
+
+        await setRoomWaiting(roomId);
+        await resetParticipantsForNextRound(roomId);
+        emitRoomState(io, roomId);
+      } catch (error) {
+        socket.emit("error_event", { message: error.message || "Failed to restart round." });
       }
     });
 
