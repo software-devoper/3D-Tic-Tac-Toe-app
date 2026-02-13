@@ -92,7 +92,13 @@ export default function SinglePlayerPage() {
         </div>
 
         <div className="grid md:grid-cols-[1fr_220px] gap-4 items-start">
-          <Board board={board} onSelect={handlePlayerMove} disabled={busy || turn !== "X" || gameEnded} winLine={winLine} />
+          <Board
+            board={board}
+            onSelect={handlePlayerMove}
+            disabled={busy || turn !== "X" || gameEnded}
+            winLine={winLine}
+            winner={result.winner}
+          />
 
           <div className="glass p-4 space-y-2">
             <p className="text-sm text-slate-200">Status</p>
