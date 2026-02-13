@@ -175,7 +175,13 @@ export default function MultiplayerRoomPage() {
                 </p>
               ) : null}
 
-              <Board board={roomState.board} onSelect={emitMove} disabled={!canMove} winLine={roomState.winLine} />
+              <Board
+                board={roomState.board}
+                onSelect={emitMove}
+                disabled={!canMove}
+                winLine={roomState.winLine}
+                winner={roomState.winner}
+              />
 
               <p className="text-cyan-100 text-sm">{mySymbol ? `You are ${mySymbol}.` : "You are a spectator."}</p>
             </>
