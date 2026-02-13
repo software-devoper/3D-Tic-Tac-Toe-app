@@ -35,7 +35,7 @@ function Piece({ symbol, position }) {
   );
 }
 
-function Cell({ index, position, value, onSelect, disabled, highlighted }) {
+function Cell({ index, position, value, onSelect, disabled, highlighted, highlightColor, highlightEmissive }) {
   return (
     <group position={position}>
       <RoundedBox
@@ -45,10 +45,10 @@ function Cell({ index, position, value, onSelect, disabled, highlighted }) {
         onClick={() => !disabled && onSelect(index)}
       >
         <meshStandardMaterial
-          color={highlighted ? "#67e8f9" : "#cbd5e1"}
+          color={highlighted ? highlightColor : "#cbd5e1"}
           metalness={0.15}
           roughness={0.45}
-          emissive={highlighted ? "#22d3ee" : "#64748b"}
+          emissive={highlighted ? highlightEmissive : "#64748b"}
           emissiveIntensity={highlighted ? 0.45 : 0.08}
         />
       </RoundedBox>
@@ -60,7 +60,7 @@ function Cell({ index, position, value, onSelect, disabled, highlighted }) {
   );
 }
 
-function BoardScene({ board, onSelect, disabled, winLine, idle }) {
+function BoardScene({ board, onSelect, disabled, winLine, winner, idle }) {
   const coords = useMemo(
     () => [
       [-1.2, 0, -1.2],
@@ -86,17 +86,30 @@ function BoardScene({ board, onSelect, disabled, winLine, idle }) {
         <cylinderGeometry args={[2.6, 2.8, 0.2, 48]} />
         <meshStandardMaterial color="#93c5fd" metalness={0.1} roughness={0.55} />
       </mesh>
-      {coords.map((pos, index) => (
-        <Cell
-          key={index}
-          index={index}
-          position={pos}
-          value={board[index]}
-          onSelect={onSelect}
-          disabled={disabled || Boolean(board[index])}
-          highlighted={Array.isArray(winLine) && winLine.includes(index)}
-        />
-      ))}
+      {/*
+        Winning-line color by symbol:
+        X -> deep cyan, O -> yellow.
+      */}
+      {(() => {
+        const isXWinner = winner === "X";
+        const isOWinner = winner === "O";
+        const highlightColor = isOWinner ? "#facc15" : isXWinner ? "#0891b2" : "#67e8f9";
+        const highlightEmissive = isOWinner ? "#ca8a04" : isXWinner ? "#0e7490" : "#22d3ee";
+
+        return coords.map((pos, index) => (
+          <Cell
+            key={index}
+            index={index}
+            position={pos}
+            value={board[index]}
+            onSelect={onSelect}
+            disabled={disabled || Boolean(board[index])}
+            highlighted={Array.isArray(winLine) && winLine.includes(index)}
+            highlightColor={highlightColor}
+            highlightEmissive={highlightEmissive}
+          />
+        ));
+      })()}
       <OrbitControls
         enablePan={false}
         minDistance={6}
@@ -110,11 +123,11 @@ function BoardScene({ board, onSelect, disabled, winLine, idle }) {
   );
 }
 
-export default function Board({ board, onSelect, disabled = false, winLine = null, idle = false }) {
+export default function Board({ board, onSelect, disabled = false, winLine = null, winner = null, idle = false }) {
   return (
     <div className="h-[360px] sm:h-[460px] w-full glass overflow-hidden">
       <Canvas camera={{ position: [0, 5.4, 6.6], fov: 45 }}>
-        <BoardScene board={board} onSelect={onSelect} disabled={disabled} winLine={winLine} idle={idle} />
+        <BoardScene board={board} onSelect={onSelect} disabled={disabled} winLine={winLine} winner={winner} idle={idle} />
       </Canvas>
     </div>
   );
