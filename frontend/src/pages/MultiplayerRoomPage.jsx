@@ -106,7 +106,7 @@ export default function MultiplayerRoomPage() {
     socketRef.current.emit("leave_partner", { roomId });
   }
 
-  const inviteLink = `${window.location.origin}/room/${roomId}`;
+  const inviteLink = `${roomId}`;
 
   async function copyInviteLink() {
     try {
