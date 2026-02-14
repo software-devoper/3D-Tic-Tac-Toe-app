@@ -55,7 +55,7 @@ export default function SinglePlayerPage() {
       if (backendMessage) {
         setMessage(`Computer move failed: ${backendMessage}`);
       } else {
-        setMessage("Computer move failed: cannot reach backend. Check VITE_BACKEND_URL and backend server.");
+        setMessage("Oops!404");
       }
       setTurn("X");
     } finally {
